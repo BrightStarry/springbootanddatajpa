@@ -137,4 +137,32 @@
     需要innodb才可以。现在正在找方法把默认引擎改成innodb,注意，还有一个sql_model的东西。
     依旧没有找到解决方法，但是手动修改后，事务是生效了。
 --------------------------------------------------------------------------
+    刚刚把idea里面的git弄好了。
+    现在说下表单验证。
+    在pojo中的属性中加注释
+        @Min(value = 18,message = "未成年")
+        private Integer age;
+    然后在controller中的方法中这么写
+            @PostMapping("")
+                public Girl addGirl(@Valid Girl girl, BindingResult bindingResult){
+                    if(bindingResult.hasErrors()){//如果有错误
+                        System.out.printf(bindingResult.getFieldError().getDefaultMessage());
+                        return null;
+                    }
+                    girl.setCupSize(girl.getCupSize());
+                    girl.setAge(girl.getAge());
+                    return girlRepository.save(girl);
+                }
+    就可以了。
+    真6啊。这么写。表单验证的异常就可以直接返回了。
+----------------------------------------------------------------------------------------
+    spring-boot-aop
+        @Aspect
+        @Component
+        public class HttpAspect {
 
+            @Before("execution(public * com.zx.controller.GirlController.*(..))")
+            public void log(){
+                System.out.println("1111111");
+            }
+    这么一个类。

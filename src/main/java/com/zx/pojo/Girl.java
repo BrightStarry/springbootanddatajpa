@@ -5,6 +5,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.validation.constraints.Min;
 
 /**
  * Created by 97038 on 2017-04-03.
@@ -16,6 +17,7 @@ public class Girl {
     private Integer id;
     @Column(length = 4)
     private String cupSize;
+    @Min(value = 18,message = "未成年")
     private Integer age;
 
     public Integer getId() {
