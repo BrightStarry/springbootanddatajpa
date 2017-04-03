@@ -21,7 +21,7 @@ public class GirlController {
     private GirlService girlService;
 
     /**
-     * 获取列表
+     * 获取列表p
      */
     @GetMapping("")
     public List<Girl> girlList(){
