@@ -165,4 +165,50 @@
             public void log(){
                 System.out.println("1111111");
             }
+    或者
+         //切点
+            @Pointcut("execution(public * com.zx.controller.GirlController.*(..))")
+            public void log(){
+
+            }
+            @Before("log()")
+            public void doBefore(){
+                System.out.println("1111111");
+            }
+            @After("log()")
+            public void doAfter(){
+                System.out.println("33333333333");
+            }
+
+     使用日志进行记录
+         private final static Logger logger = LoggerFactory.getLogger(HttpAspect.class);
+         @Before("log()")
+             public void doBefore(JoinPoint joinPoint){
+                 ServletRequestAttributes attributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+                 HttpServletRequest request = attributes.getRequest();
+                 //url
+                 logger.info("url={}",request.getRequestURL());
+                 //method
+                 logger.info("method={}",request.getMethod());
+                 //ip
+                 logger.info("ip={}",request.getRemoteAddr());
+                 //类方法
+                 logger.info("class_method={}",joinPoint.getSignature().getDeclaringTypeName()+"."+joinPoint.getSignature().getName());
+                 //参数
+                 logger.info("args={}",joinPoint.getArgs());
+             }
+       记录返回的参数
+        @AfterReturning(returning = "object",pointcut = "log()")
+           public void doAfterReturning(Object object){
+               logger.info("response={}",object.toString());
+           }
     这么一个类。
+---------------------------------------------------------------------------------------------
+    1.@NotNull：不能为null，但可以为empty
+    (""," ","   ")
+    2.@NotEmpty：不能为null，而且长度必须大于0
+    (" ","  ")
+    3.@NotBlank：只能作用在String上，不能为null，而且调用trim()后，长度必须大于0
+    ("test")    即：必须有实际字符
+   注解在实体类的属性上。
+---------------------------------------------------------------------------------------------
