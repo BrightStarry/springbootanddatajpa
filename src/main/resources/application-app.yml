@@ -1,0 +1,6 @@
+#正式环境
+server:
+  port: 8880
+girl:
+  cupSize: A
+  age: 16

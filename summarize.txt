@@ -1,0 +1,140 @@
+2017年4月2日 22:17:06
+    开始弄springboot，本来已经弄了一个项目的。结果，我因为一个很傻比的错误，折腾了一晚上，还把项目删了重建。弄到最后，才发现，就是把server打成
+了service.真的是好痛苦。以后，一些莫名奇妙的错误。第一个检查的一定要是拼写。
+    再打一边，启动spring-boot项目的方法
+        1:运行 XXXApplication
+        2：maven 命令行   spring-boot:run
+        3:jar的方式   maven  clean  package  然后 在目录中运行  Java -jar spring-boot01-1.0-SNAPSHOT.jar 启动（可以加参数修改port）
+            (Java -jar spring-boot01-1.0-SNAPSHOT.jar --name="Spring" --server.port=9090   这么加,注意。真的是  -- 不是-)
+    然后是 配置文件的格式
+        1.  application.properties  格式： server.port=8888
+        2.  application.yml  格式  server:  port: 8888  注意，key冒号和value之间一定要有空格
+        其中，properties优先级比yml文件高。据说最高的是放在classpath:config/中的
+----------------------------------------------------------------------------
+2017年4月3日 10:34:59
+    在配置文件中随便写一个属性，例如   xxx: ZhengXing
+    可以在类中使用如下方式获取该属性:
+        @Value("${xxx}")
+        private String xxx;
+    可以在配置文件中，获取已经配置好的属性，也就是多个配置属性的叠加
+        cupSize: A
+        age: 16
+        girl: "cupSize: ${cupSize}, age: ${age}"
+    这样就可以了。
+
+    也可以直接将所有属性注入到一个实体类中（应该算是dto）
+    yml这么写：
+        girl:
+          cupSize: A
+          age: 16
+    再创建一个实体类，加上这么个注释
+        @Component
+        @ConfigurationProperties(prefix = "girl")
+    最后在要引入的类中这么写
+        @Autowired
+        private Girl girl;
+    END。
+
+    还可以同时配置两个yml文件，一个测试（application-dev），一个线上(application-app)。
+    然后保留原来的application.yml(这个是总的),在里面配置
+        spring:
+            profiles:
+                active: xxx(dev或app)
+    就可以选择让哪个配置文件生效了。
+    -以上Controller中的注解是RestController
+    @RequestMapping(value = {"/","/index"}, method = RequestMethod.GET) 多个访问url
+-------------------------------------------------------------
+    spring有个模版 thymeleaf  使用html为后缀。 解析器默认路径  classpath:/templates/*.html  静态文件默认路径 classpath:/static/
+    配置方式:
+        1.导入jar
+                 <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+                </dependency>
+        2.resources下建立目录  templates
+            新建index.html
+        3.使用普通的@Controller注解
+            return "index";
+    配置文件的一些可用配置（也可不配）
+        #thymeleaf start
+        spring.thymeleaf.mode=HTML5
+        spring.thymeleaf.encoding=UTF-8
+        spring.thymeleaf.content-type=text/html
+        #开发时关闭缓存,不然没法看到实时页面
+        spring.thymeleaf.cache=false
+        #thymeleaf end
+    妈的：这个模版又可以弄个项目学习下了。
+-----------------------------------------------------------------
+    spring-data-jpa  对hibernate的整合的框架（亏我之前还以为是一个新的简化的框架,..不过这么理解好像没错）
+    restful :
+    get   /girls  获取列表
+    POST  /girls  创建
+    get   /girls/id  查询
+    put   /girls/id  更新
+    delete /girls/id  删除
+
+    配置文件配置 data-jpa
+        spring:
+          datasource:
+            driver-class-name: com.mysql.jdbc.Driver
+            url: jdbc:mysql://127.0.0.1:3306/test
+            username: zx
+            password: 123456
+          jpa:
+            hibernate:
+              ddl-auto: update
+            show-sql: true
+
+    实体类：
+        @Entity
+        public class Girl {
+            @Id
+            @GeneratedValue
+            private Integer id;
+            private String cupSize;
+            private Integer age;
+        }
+-----------------------------------------------------------------------
+    dao层
+        public interface GirlRepository extends JpaRepository<Girl,Integer> {
+        }
+    就这样就好了。不需要写接口的方法了
+    controller中
+            /**
+             * 修改
+             */
+            @PutMapping("/{id}")
+            public Girl updateGirl(@PathVariable("id")Integer id,@RequestParam("cupSize") String cupSize,@RequestParam("age")Integer age){
+                Girl girl = new Girl();
+                girl.setCupSize(cupSize);
+                girl.setAge(age);
+                girl.setId(id);
+                return  girlRepository.save(girl);
+            }
+     ok了。强大
+    还有。idea太强大了。网上看了一个 idea 设置的教程，有许多很好的设置，
+    另外，tools-->test restful webservice
+    可以进行 post、put等各种请求。
+-----------------------------------------------------------------------
+    Spring Boot 目前还无法直接注入的静态变量。我目前使用的方法是专门建立一个读取配置文件的Bean，然后使用 @PostConstruct 注解修饰的方法对这些静态属性进行初始化，例如：
+
+    @Configuration
+    public class ConstantsInitializer {
+
+        @Value("${paging_size}")
+        private String pagingSize;
+
+        @PostConstruct
+        public void initConstants() {
+            Constants.PAGING_SIZE = this.pagingSize;
+        }
+    }
+    yml注入常量
+--------------------------------------------------------------------
+    遇到一个bug，spring-boot的事务一直无法生效。
+    明明说直接在方法上加一个@Transactional就可以了的。
+    最后发现是因为data-jpa默认创建的表用的mysql引擎是myisam的，不支持事务，
+    需要innodb才可以。现在正在找方法把默认引擎改成innodb,注意，还有一个sql_model的东西。
+    依旧没有找到解决方法，但是手动修改后，事务是生效了。
+--------------------------------------------------------------------------
+
