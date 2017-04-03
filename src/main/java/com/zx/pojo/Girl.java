@@ -19,11 +19,11 @@ public class Girl {
     @GeneratedValue
     private Integer id;
 
-    @NotBlank(message = "这个字段必传")
+    @NotBlank(message = "罩杯必传")
     @Column(length = 4)
     private String cupSize;
 
-    @NotNull(message = "这个字段必传")
+    @NotNull(message = "年龄必传")
     @Min(value = 18,message = "未成年")
     private Integer age;
 

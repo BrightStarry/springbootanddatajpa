@@ -212,3 +212,99 @@
     ("test")    即：必须有实际字符
    注解在实体类的属性上。
 ---------------------------------------------------------------------------------------------
+    异常处理+统一返回类型
+    1.自定义异常
+        public class GirlException extends RuntimeException {
+            private Integer code;
+            public Integer getCode() {
+                return code;
+            }
+            public void setCode(Integer code) {
+                this.code = code;
+            }
+            public GirlException(ResultEnum resultEnum) {
+                super(resultEnum.getMsg());
+                this.code = resultEnum.getCode();
+            }
+        }
+    2.定义异常枚举
+        public class GirlException extends RuntimeException {
+            private Integer code;
+            public Integer getCode() {
+                return code;
+            }
+            public void setCode(Integer code) {
+                this.code = code;
+            }
+            public GirlException(ResultEnum resultEnum) {
+                super(resultEnum.getMsg());
+                this.code = resultEnum.getCode();
+            }
+        }
+
+    3.在service的方法中
+        public void getAge(Integer id) throws Exception {
+                Girl girl = girlRepository.findOne(id).get();
+                Integer age  = girl.getAge();
+                if(age < 10 ){
+                    throw new GirlException(ResultEnum.PRIMARY_SCHOOL);
+                }else if(age < 16){
+                    throw new GirlException(ResultEnum.MIDDLE_SCHOOL);
+                }
+            }
+        直接抛出自定义异常。并抛出所有异常。
+    4.定义异常处理类(不会影响spring事务的回滚)
+            @ControllerAdvice
+            public class ExceptionHandle {
+                private final static Logger logger = LoggerFactory.getLogger(ExceptionHandle.class);
+                @ExceptionHandler(value = Exception.class)
+                @ResponseBody
+                public Result handle(Exception e){
+                    //这样就可以区分系统异常和自己包装的异常了
+                    if(e instanceof GirlException){
+                        GirlException girlException = (GirlException) e;
+                        return ResultUtil.error(girlException.getCode(),e.getMessage());
+                    }else{
+                        logger.error("【系统异常】{}",e);
+                        return ResultUtil.error(ResultEnum.UNKONW_ERROR);
+                    }
+                }
+            }
+    5.定义controller层通用返回类
+        public class Result<T> {
+            /*错误码*/
+            private Integer code;
+            /*提示信息*/
+            private String msg;
+            /*数据*/
+            private T data;}
+    6.定义通用返回工具类
+        public class ResultUtil {
+            public static Result success(Object obj){
+                Result result = new Result();
+                result.setCode(0);
+                result.setMsg("success");
+                result.setData(obj);
+                return result;
+            }
+            public static Result success(){
+                return success(null);
+            }
+            public static Result error(Integer code,String msg){
+                Result result = new Result();
+                result.setCode(code);
+                result.setMsg(msg);
+                return result;
+            }
+            public static Result error(ResultEnum resultEnum){
+                Result result = new Result();
+                result.setCode(resultEnum.getCode());
+                result.setMsg(resultEnum.getMsg());
+                return result;
+            }
+        }
+    7.controller返回
+        return ResultUtil.success(girlResult);之类的
+
+
+

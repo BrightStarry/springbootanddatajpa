@@ -1,8 +1,10 @@
 package com.zx.controller;
 
+import com.zx.dto.Result;
 import com.zx.pojo.Girl;
 import com.zx.repository.GirlRepository;
 import com.zx.service.GirlService;
+import com.zx.util.ResultUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -34,14 +36,16 @@ public class GirlController {
      * 创建
      */
     @PostMapping("")
-    public Girl addGirl(@Valid Girl girl, BindingResult bindingResult){
+    public Result<Girl> addGirl(@Valid Girl girl, BindingResult bindingResult){
         if(bindingResult.hasErrors()){//如果有错误
-            System.out.printf(bindingResult.getFieldError().getDefaultMessage());
             return null;
+//            return ResultUtil.error(1,bindingResult.getFieldError().getDefaultMessage());
         }
         girl.setCupSize(girl.getCupSize());
         girl.setAge(girl.getAge());
-        return girlRepository.save(girl);
+
+        Girl girlResult = girlRepository.save(girl);
+        return ResultUtil.success(girlResult);
     }
 
     /**
@@ -75,6 +79,14 @@ public class GirlController {
     @GetMapping("/test")
     public void test(){
         girlService.insertTwo();
+    }
+
+    /**
+     * 年龄判断
+     */
+    @RequestMapping("/age/{id}")
+    public void getAge(@PathVariable("id")Integer id) throws Exception {
+        girlService.getAge(id);
     }
 
 
