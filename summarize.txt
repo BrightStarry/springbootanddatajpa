@@ -205,9 +205,7 @@
     这么一个类。
 ---------------------------------------------------------------------------------------------
     1.@NotNull：不能为null，但可以为empty
-    (""," ","   ")
     2.@NotEmpty：不能为null，而且长度必须大于0
-    (" ","  ")
     3.@NotBlank：只能作用在String上，不能为null，而且调用trim()后，长度必须大于0
     ("test")    即：必须有实际字符
    注解在实体类的属性上。
@@ -228,17 +226,22 @@
             }
         }
     2.定义异常枚举
-        public class GirlException extends RuntimeException {
+        public enum ResultEnum {
+            UNKONW_ERROR(-1,"未知错误"),
+            SUCCESS(1,"成功"),
+            PRIMARY_SCHOOL(2,"小学"),
+            MIDDLE_SCHOOL(3,"初中");
             private Integer code;
+            private String msg;
+            ResultEnum(Integer code, String msg) {
+                this.code = code;
+                this.msg = msg;
+            }
             public Integer getCode() {
                 return code;
             }
-            public void setCode(Integer code) {
-                this.code = code;
-            }
-            public GirlException(ResultEnum resultEnum) {
-                super(resultEnum.getMsg());
-                this.code = resultEnum.getCode();
+            public String getMsg() {
+                return msg;
             }
         }
 
@@ -305,6 +308,84 @@
         }
     7.controller返回
         return ResultUtil.success(girlResult);之类的
+
+------------------------------------------------------------------------
+  2017年4月13日 22:00:29
+慕课网又出了一个spring data jpa的课程 ，学习一下
+----------------------------------------------------------
+    Repository<T,ID extends Serializable>接口 没有任何方法
+        是一个空接口（标记接口），即没有方法声明的接口。但一旦继承这个接口，就可以进入spring的管理
+        也可以不继承.使用如下注解：
+            @RepositoryDefinition(domainClass = Student.class,idClass = Integer.class)
+    Repository<T,ID extends Serializable>接口的子接口：
+        CrudRepository:继承Repository,实现了crud的相关方法
+            crudRepsitory的子接口：
+                PagingAndSortingRepository接口： 分页和排序的实现接口
+                    再往下的子接口：
+                        JpaRepository:实现了上面所有的功能
+---------------------------------------------------------------------------
+    //名字以 x开头，年龄小于Y
+    List<Student> findByNameStartingWithAndAgeLessThan(String name, Integer age);
+    //名字 属于 xxx，或者年龄小雨y
+    List<Student> findByNameInOrAgeLessThan(List<String> names,Integer age);
+--------------------------------------------
+    @Query
+        //查询年龄最大的学生信息
+        @Query("select s from Student s where id=(select max(id) from Student s1)")
+        Student getStudentById();
+        //查询1
+        @Query("select s from Student s where s.name=?1 and age =?2")
+        List<Student> queryStudent1(String name,Integer age);
+        //查询2
+        @Query("select s from Student s where s.name=:name and age =:age")
+        List<Student> queryStudent2(@Param("name") String name,@Param("age")  Integer age);
+        //查询3
+        @Query("select s from Student s where s.name like %?1%")
+        List<Student> queryStudent3(String name);
+        //count  原生查询 注意 count 这种函数必须小写
+        @Query(nativeQuery = true,value = "SELECT count(1) FROM student")
+        long getCount();
+
+    @Modifying 更新操作的注解 不知道为什么。没跟新成功，但是也没有报错
+     @Modifying
+        @Query("update Student set name=:name,age=:age where id=:id")
+        void update(@Param("name")String name,@Param("age")Integer age,@Param("id")Integer id);
+--------------------------------------------------------------------------
+    分页
+                // page 的索引从0开始
+                Sort.Order order = new Sort.Order(Sort.Direction.DESC,"id");
+                Sort sort = new Sort(order);
+                Pageable pageable = new PageRequest(0,5,sort);
+                Page<Student> page = studentRepository.findAll(pageable);
+                System.out.println("总页数" + page.getTotalPages() );
+                System.out.println("总记录数" + page.getTotalElements());
+                System.out.println("当前页" + page.getNumber());
+                System.out.println("当前页面的集合内容（list对象）" + page.getContent());
+                System.out.println("当前页面的记录书" + page.getNumberOfElements());
+-----------------------------------------
+    JpaSpecificationExecutor<T>接口  Specification封装了Criteria查询条件  可以继承多个接口，功能增强
+
+    //1.分页 2。排序 3.查询条件 ：age > 50
+    //匿名内部类
+    //root就是我们要查询的类型（Student） criteriaQuery:查询条件 criteria：构建predicate
+    Specification<Student>  specification = new Specification<Student>() {
+           @Override
+    public Predicate toPredicate(Root<Student> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+            //root (Student(age))
+             Path path = root.get("age");
+             return criteriaBuilder.gt(path,50);
+           }
+    };
+         Sort.Order order = new Sort.Order(Sort.Direction.DESC,"id");
+         Sort sort = new Sort(order);
+         Pageable pageable = new PageRequest(0,5,sort);
+         //可以同时传条件和分页
+         final Page<Student> page = studentRepository.findAll(specification, pageable);
+----------------------------------------------------
+今晚9点回家，到现在（2017年4月13日 23:17:22）看完了这个data jpa，。我也是够拼的了。。睡觉
+听说慕课网下面还有spark的课程。
+-----------------------
+2017年4月14日 14:08:25 直接把那个项目的总结，复制到这里好了。那些代码就删了把
 
 
 

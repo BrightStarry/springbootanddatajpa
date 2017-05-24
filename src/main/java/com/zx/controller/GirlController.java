@@ -38,8 +38,8 @@ public class GirlController {
     @PostMapping("")
     public Result<Girl> addGirl(@Valid Girl girl, BindingResult bindingResult){
         if(bindingResult.hasErrors()){//如果有错误
-            return null;
-//            return ResultUtil.error(1,bindingResult.getFieldError().getDefaultMessage());
+//            return null;
+            return ResultUtil.error(5,bindingResult.getFieldError().getDefaultMessage());
         }
         girl.setCupSize(girl.getCupSize());
         girl.setAge(girl.getAge());
@@ -53,7 +53,7 @@ public class GirlController {
      */
     @GetMapping("/{id}")
     public Girl getGirl(@PathVariable("id")Integer id){
-        return  girlRepository.findOne(id).get();
+        return  girlRepository.findOne(id);
     }
 
     /**
