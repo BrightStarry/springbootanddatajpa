@@ -33,7 +33,7 @@ public class GirlService {
     }
 
     public void getAge(Integer id) throws Exception {
-        Girl girl = girlRepository.findOne(id).get();
+        Girl girl = girlRepository.findOne(id);
         Integer age  = girl.getAge();
         if(age < 10 ){
             throw new GirlException(ResultEnum.PRIMARY_SCHOOL);
